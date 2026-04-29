@@ -1,11 +1,9 @@
 # ================================================================
-#  ServiceReport Pro — app.py  (RENDER DEPLOYMENT - FIXED)
+#  ServiceReport Pro — app.py
 #  Complete Auth: Register + Login (2-step OTP) + Forgot Password
 #  Live email OTP via Gmail SMTP
 # ================================================================
 
-# ✅ FIX 1: All imports at the TOP
-import os
 from flask import Flask, request, jsonify, render_template, session
 from flask_cors import CORS
 import mysql.connector
@@ -15,45 +13,46 @@ from email.mime.text import MIMEText
 from email.mime.multipart import MIMEMultipart
 
 app = Flask(__name__)
-app.secret_key = os.environ.get("SECRET_KEY", "servicereport_ultra_secret_2026")
+app.secret_key = "servicereport_ultra_secret_2026"
+app = Flask(__name__)
+CORS(app)
 
-# ✅ FIX 2: CORS now allows ALL origins (works on Render + localhost)
-CORS(app, supports_credentials=True, origins="*")
+CORS(app, supports_credentials=True, origins=[
+    "http://127.0.0.1:5000", "http://localhost:5000",
+    "http://127.0.0.1:5500", "http://localhost:5500",
+])
 
 # ================================================================
-# ⚙️  GMAIL CONFIGURATION
-#     On Render → set these as Environment Variables (not hardcoded)
-#     Render Dashboard → your service → Environment → Add Variable
-#     GMAIL_SENDER   = adityaphadnis11@gmail.com
-#     GMAIL_PASSWORD = ihov mzhn cylj njho
+# ⚙️  GMAIL CONFIGURATION — EDIT ONLY THESE 2 LINES
 # ================================================================
-GMAIL_SENDER   = os.environ.get("GMAIL_SENDER",   "adityaphadnis11@gmail.com")
-GMAIL_PASSWORD = os.environ.get("GMAIL_PASSWORD", "ihov mzhn cylj njho")
+#
+#  HOW TO GET YOUR APP PASSWORD (2 minutes):
+#  ──────────────────────────────────────────
+#  1. Open → https://myaccount.google.com/security
+#  2. Turn ON "2-Step Verification" if it is off
+#  3. Search "App Passwords" in the search bar on that page
+#  4. App name → type "ServiceReport" → click Create
+#  5. Copy the 16-character code Google shows (e.g. abcd efgh ijkl mnop)
+#  6. Paste it into GMAIL_PASSWORD below (spaces are fine)
+#
+#  ⚠️  GMAIL_SENDER must be the SAME Gmail account you used above.
+#  ⚠️  NEVER use your real Gmail login password here — use App Password.
+# ================================================================
+
+GMAIL_SENDER   = "adityaphadnis11@gmail.com"   # ← your Gmail address
+GMAIL_PASSWORD = "ihov mzhn cylj njho"          # ← paste App Password here
 
 APP_NAME       = "ServiceReport Pro"
 OTP_EXPIRY_MIN = 10
 MAX_ATTEMPTS   = 5
 
 # ================================================================
-# ✅ FIX 3: DATABASE — Use environment variable for Render
-#    Option A (Free): Use PlanetScale / Clever Cloud / Railway MySQL
-#    Option B: Use SQLite for testing (no setup needed)
-#
-#    On Render, set these Environment Variables:
-#    DB_HOST     = your-cloud-mysql-host
-#    DB_USER     = your-db-username
-#    DB_PASSWORD = your-db-password
-#    DB_NAME     = your-db-name
-#    DB_PORT     = 3306
+# DATABASE
 # ================================================================
 def db():
     return mysql.connector.connect(
-        host     = os.environ.get("DB_HOST",     "localhost"),
-        user     = os.environ.get("DB_USER",     "root"),
-        password = os.environ.get("DB_PASSWORD", ""),
-        database = os.environ.get("DB_NAME",     "test"),
-        port     = int(os.environ.get("DB_PORT", 3306)),
-        autocommit = True
+        host="localhost", user="root", password="",
+        database="test", port=3306, autocommit=True
     )
 
 def init_db():
@@ -134,6 +133,8 @@ def send_otp_email(to_email: str, otp: str, purpose: str, name: str = "User") ->
 <table width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#09131f;padding:48px 0;">
   <tr><td align="center">
   <table width="560" cellpadding="0" cellspacing="0" border="0" style="max-width:560px;width:100%;">
+
+    <!-- LOGO BAR -->
     <tr><td style="padding-bottom:28px;text-align:center;">
       <table cellpadding="0" cellspacing="0" border="0" align="center">
         <tr>
@@ -145,7 +146,11 @@ def send_otp_email(to_email: str, otp: str, purpose: str, name: str = "User") ->
         </tr>
       </table>
     </td></tr>
+
+    <!-- CARD -->
     <tr><td style="background:#0f1c2e;border-radius:20px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);">
+
+      <!-- TOP STRIPE -->
       <tr><td style="background:linear-gradient(90deg,#1e3352,#162236);padding:32px 40px;border-bottom:1px solid rgba(255,255,255,0.06);">
         <table width="100%"><tr>
           <td>
@@ -158,6 +163,8 @@ def send_otp_email(to_email: str, otp: str, purpose: str, name: str = "User") ->
           </td>
         </tr></table>
       </td></tr>
+
+      <!-- OTP BOX -->
       <tr><td style="padding:40px;text-align:center;">
         <div style="font-size:12px;color:#8aa0b8;letter-spacing:2px;text-transform:uppercase;margin-bottom:18px;">One-Time Password</div>
         <div style="background:#09131f;border:2px solid rgba(232,160,74,0.4);border-radius:16px;padding:28px 20px;display:inline-block;min-width:280px;">
@@ -167,6 +174,8 @@ def send_otp_email(to_email: str, otp: str, purpose: str, name: str = "User") ->
           Valid for <strong style="color:#ffffff;">{OTP_EXPIRY_MIN} minutes</strong> &nbsp;·&nbsp; One-time use only
         </div>
       </td></tr>
+
+      <!-- GREETING + WARNING -->
       <tr><td style="padding:0 40px 36px;">
         <div style="background:#0a1929;border-radius:12px;padding:18px 20px;border-left:3px solid #e8a04a;">
           <div style="font-size:13px;color:#cbd5e1;line-height:1.7;">
@@ -175,16 +184,26 @@ def send_otp_email(to_email: str, otp: str, purpose: str, name: str = "User") ->
           </div>
         </div>
       </td></tr>
+
+      <!-- FOOTER INSIDE CARD -->
       <tr><td style="background:#09131f;padding:18px 40px;border-top:1px solid rgba(255,255,255,0.05);text-align:center;">
         <div style="font-size:12px;color:rgba(255,255,255,0.2);">© 2026 {APP_NAME} &nbsp;·&nbsp; Pune, India &nbsp;·&nbsp; This is an automated email, please do not reply</div>
       </td></tr>
+
     </td></tr>
+    <!-- END CARD -->
+
   </table>
   </td></tr>
 </table>
 </body>
 </html>
 """
+    # Validate config before attempting send
+    if "your_email" in GMAIL_SENDER or "xxxx" in GMAIL_PASSWORD:
+        print("[EMAIL ✗] Gmail not configured. Edit GMAIL_SENDER and GMAIL_PASSWORD in app.py")
+        return False
+
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = f"{icon} {title} — {APP_NAME}"
@@ -198,6 +217,8 @@ def send_otp_email(to_email: str, otp: str, purpose: str, name: str = "User") ->
         return True
     except smtplib.SMTPAuthenticationError:
         print("[EMAIL ✗] Gmail authentication failed.")
+        print("  → Make sure GMAIL_PASSWORD is an App Password, NOT your Gmail login password.")
+        print("  → Get App Password: Google Account → Security → App Passwords")
         return False
     except smtplib.SMTPException as e:
         print(f"[EMAIL ✗] SMTP error: {e}")
@@ -225,6 +246,7 @@ def user_by_email(email):
 
 @app.route("/register/send-otp", methods=["POST"])
 def register_send_otp():
+    """Validate fields → check uniqueness → send OTP → store pending in session"""
     d        = request.json or {}
     username = d.get("username","").strip()
     email    = d.get("email","").strip().lower()
@@ -243,7 +265,7 @@ def register_send_otp():
     otp  = otp_create("register", email)
     sent = send_otp_email(email, otp, "register", username)
     if not sent:
-        return jsonify(error="Could not send OTP email. Check GMAIL_SENDER and GMAIL_PASSWORD."), 500
+        return jsonify(error="Could not send OTP email. Check GMAIL_SENDER and GMAIL_PASSWORD in app.py."), 500
 
     session["reg"] = {"username": username, "email": email, "password": password}
     return jsonify(ok=True, masked=mask_email(email))
@@ -251,6 +273,7 @@ def register_send_otp():
 
 @app.route("/register/verify-otp", methods=["POST"])
 def register_verify_otp():
+    """Verify OTP → create account → auto login"""
     d     = request.json or {}
     inp   = d.get("otp","").strip()
     reg   = session.get("reg")
@@ -290,6 +313,7 @@ def register_resend():
 
 @app.route("/login/send-otp", methods=["POST"])
 def login_send_otp():
+    """Verify password → send OTP (no session yet)"""
     d        = request.json or {}
     email    = d.get("email","").strip().lower()
     password = d.get("password","")
@@ -305,7 +329,7 @@ def login_send_otp():
     otp  = otp_create("login", email)
     sent = send_otp_email(email, otp, "login", username)
     if not sent:
-        return jsonify(error="Could not send OTP email. Check GMAIL_SENDER and GMAIL_PASSWORD."), 500
+        return jsonify(error="Could not send OTP email. Check GMAIL_SENDER and GMAIL_PASSWORD in app.py."), 500
 
     session["pre"] = {"uid": uid, "username": username, "email": email}
     return jsonify(ok=True, masked=mask_email(email), username=username)
@@ -313,6 +337,7 @@ def login_send_otp():
 
 @app.route("/login/verify-otp", methods=["POST"])
 def login_verify_otp():
+    """Verify OTP → start authenticated session"""
     d    = request.json or {}
     inp  = d.get("otp","").strip()
     pre  = session.get("pre")
@@ -349,7 +374,7 @@ def forgot_send_otp():
         return jsonify(error="Enter a valid email address."), 400
 
     u = user_by_email(email)
-    if u:
+    if u:   # always respond 200 to prevent email enumeration
         otp = otp_create("reset", email)
         send_otp_email(email, otp, "reset", u[1])
         session["reset_email"] = email
@@ -416,21 +441,52 @@ def auth_logout():
 
 
 # ================================================================
-# ─── TEST EMAIL ───────────────────────────────────────────────
+# ─── TEST EMAIL (visit http://127.0.0.1:5000/test-email) ─────
 # ================================================================
 @app.route("/test-email")
 def test_email():
+    """
+    Visit this URL in browser to check if Gmail is configured correctly.
+    Returns a JSON response with pass/fail and exact error reason.
+    """
+    if "your_email" in GMAIL_SENDER or "xxxx" in GMAIL_PASSWORD:
+        return jsonify(
+            ok=False,
+            step="config",
+            error="GMAIL_SENDER or GMAIL_PASSWORD not set.",
+            fix="Open app.py and set GMAIL_SENDER to your Gmail address, and GMAIL_PASSWORD to your 16-char App Password."
+        ), 400
+
     try:
         with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=8) as s:
             s.login(GMAIL_SENDER, GMAIL_PASSWORD)
+
+        # Send a real test OTP
         test_otp = str(random.randint(100000, 999999))
         sent = send_otp_email(GMAIL_SENDER, test_otp, "register", "Test User")
+
         if sent:
-            return jsonify(ok=True, message=f"✅ Email sent to {GMAIL_SENDER}. Check your inbox!", sender=GMAIL_SENDER)
+            return jsonify(
+                ok=True,
+                message=f"✅ Email sent to {GMAIL_SENDER}. Check your inbox!",
+                sender=GMAIL_SENDER
+            )
         else:
             return jsonify(ok=False, error="Login OK but send failed. Check terminal logs."), 500
+
     except smtplib.SMTPAuthenticationError:
-        return jsonify(ok=False, step="authentication", error="Gmail App Password is wrong."), 401
+        return jsonify(
+            ok=False,
+            step="authentication",
+            error="Gmail authentication failed — wrong App Password.",
+            fix="Go to Google Account → Security → App Passwords → create one for 'ServiceReport' and paste it in app.py"
+        ), 401
+    except smtplib.SMTPConnectError:
+        return jsonify(
+            ok=False,
+            step="connection",
+            error="Could not connect to Gmail SMTP. Check your internet connection."
+        ), 503
     except Exception as e:
         return jsonify(ok=False, step="unknown", error=str(e)), 500
 
@@ -446,6 +502,113 @@ def index():
 @app.route("/index.html")
 def index_alias():
     return render_template("index.html")
+
+
+# ================================================================
+# ─── CONTACT FORM EMAIL ──────────────────────────────────────
+# ================================================================
+
+CONTACT_RECEIVER = "reportsservice4999@gmail.com"   # ← your inbox
+
+@app.route("/send-contact", methods=["POST"])
+def send_contact():
+    """Receives contact form data and emails it to CONTACT_RECEIVER."""
+    try:
+        d       = request.json or {}
+        fname   = d.get("fname","").strip()
+        lname   = d.get("lname","").strip()
+        email   = d.get("email","").strip()
+        subject = d.get("subject","").strip() or "New Contact Message — ServiceReport Pro"
+        message = d.get("message","").strip()
+
+        if not fname or not email or not message:
+            return jsonify(error="Missing required fields."), 400
+
+        full_name = f"{fname} {lname}".strip()
+
+        html = f"""<!DOCTYPE html>
+<html><head><meta charset="UTF-8"></head>
+<body style="margin:0;padding:0;background:#09131f;font-family:Arial,sans-serif;">
+<table width="100%" cellpadding="0" cellspacing="0" style="background:#09131f;padding:40px 0;">
+<tr><td align="center">
+<table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#0f1c2e;
+  border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);">
+
+  <tr><td style="background:#162236;padding:24px 36px;border-bottom:1px solid rgba(255,255,255,0.07);">
+    <span style="font-size:20px;font-weight:800;color:#fff;">ServiceReport <span style="color:#e8a04a;">Pro</span></span>
+    <span style="font-size:12px;color:#8aa0b8;margin-left:12px;">New Contact Message</span>
+  </td></tr>
+
+  <tr><td style="padding:32px 36px;">
+    <div style="background:#1e3352;border-radius:10px;padding:20px 24px;margin-bottom:24px;">
+      <table width="100%" cellpadding="0" cellspacing="0">
+        <tr>
+          <td style="font-size:11px;color:#8aa0b8;text-transform:uppercase;letter-spacing:1px;padding-bottom:4px;">From</td>
+          <td style="font-size:14px;font-weight:700;color:#fff;text-align:right;">{full_name}</td>
+        </tr>
+        <tr>
+          <td style="font-size:11px;color:#8aa0b8;text-transform:uppercase;letter-spacing:1px;padding-bottom:4px;">Email</td>
+          <td style="font-size:14px;color:#e8a04a;text-align:right;">{email}</td>
+        </tr>
+        <tr>
+          <td style="font-size:11px;color:#8aa0b8;text-transform:uppercase;letter-spacing:1px;">Subject</td>
+          <td style="font-size:14px;color:#fff;text-align:right;">{subject}</td>
+        </tr>
+      </table>
+    </div>
+
+    <div style="font-size:11px;color:#8aa0b8;text-transform:uppercase;letter-spacing:1px;margin-bottom:10px;">Message</div>
+    <div style="background:#1e3352;border-left:3px solid #e8a04a;border-radius:0 8px 8px 0;
+      padding:18px 20px;font-size:14px;color:#e2e8f0;line-height:1.8;white-space:pre-wrap;">{message}</div>
+
+    <div style="margin-top:24px;padding:14px 18px;background:rgba(232,160,74,.08);
+      border:1px solid rgba(232,160,74,.2);border-radius:8px;font-size:12px;color:#fcd38d;">
+      💡 Reply directly to this email to respond to {full_name}.
+    </div>
+  </td></tr>
+
+  <tr><td style="background:#09131f;padding:16px 36px;border-top:1px solid rgba(255,255,255,0.05);
+    font-size:11px;color:rgba(255,255,255,0.2);text-align:center;">
+    © 2026 ServiceReport Pro · Pune, India · Contact Form Submission
+  </td></tr>
+
+</table>
+</td></tr>
+</table>
+</body></html>"""
+
+        plain = (
+            f"New contact message from ServiceReport Pro\n"
+            f"{'='*45}\n"
+            f"From    : {full_name}\n"
+            f"Email   : {email}\n"
+            f"Subject : {subject}\n"
+            f"{'='*45}\n\n"
+            f"{message}\n\n"
+            f"{'='*45}\n"
+            f"Reply to: {email}"
+        )
+
+        msg = MIMEMultipart("alternative")
+        msg["Subject"] = f"📩 Contact: {subject} — {full_name}"
+        msg["From"]    = f"ServiceReport Pro <{GMAIL_SENDER}>"
+        msg["To"]      = CONTACT_RECEIVER
+        msg["Reply-To"] = email     # clicking Reply goes to the sender
+        msg.attach(MIMEText(plain, "plain"))
+        msg.attach(MIMEText(html,  "html"))
+
+        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=12) as s:
+            s.login(GMAIL_SENDER, GMAIL_PASSWORD)
+            s.sendmail(GMAIL_SENDER, CONTACT_RECEIVER, msg.as_string())
+
+        print(f"[CONTACT ✓] Message from {full_name} <{email}> sent to {CONTACT_RECEIVER}")
+        return jsonify(ok=True, message="Message sent successfully.")
+
+    except smtplib.SMTPAuthenticationError:
+        return jsonify(error="Gmail authentication failed. Check GMAIL_SENDER and GMAIL_PASSWORD in app.py."), 500
+    except Exception as e:
+        print(f"[CONTACT ✗] {e}")
+        return jsonify(error=str(e)), 500
 
 @app.route("/login.html")
 def login_page():
@@ -469,81 +632,15 @@ def manage():
 
 
 # ================================================================
-# ─── CONTACT FORM EMAIL ──────────────────────────────────────
-# ================================================================
-
-CONTACT_RECEIVER = os.environ.get("CONTACT_RECEIVER", "reportsservice4999@gmail.com")
-
-@app.route("/send-contact", methods=["POST"])
-def send_contact():
-    try:
-        d       = request.json or {}
-        fname   = d.get("fname","").strip()
-        lname   = d.get("lname","").strip()
-        email   = d.get("email","").strip()
-        subject = d.get("subject","").strip() or "New Contact Message — ServiceReport Pro"
-        message = d.get("message","").strip()
-
-        if not fname or not email or not message:
-            return jsonify(error="Missing required fields."), 400
-
-        full_name = f"{fname} {lname}".strip()
-
-        html = f"""<!DOCTYPE html>
-<html><head><meta charset="UTF-8"></head>
-<body style="margin:0;padding:0;background:#09131f;font-family:Arial,sans-serif;">
-<table width="100%" cellpadding="0" cellspacing="0" style="background:#09131f;padding:40px 0;">
-<tr><td align="center">
-<table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;width:100%;background:#0f1c2e;
-  border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.07);">
-  <tr><td style="background:#162236;padding:24px 36px;border-bottom:1px solid rgba(255,255,255,0.07);">
-    <span style="font-size:20px;font-weight:800;color:#fff;">ServiceReport <span style="color:#e8a04a;">Pro</span></span>
-    <span style="font-size:12px;color:#8aa0b8;margin-left:12px;">New Contact Message</span>
-  </td></tr>
-  <tr><td style="padding:32px 36px;">
-    <div style="background:#1e3352;border-radius:10px;padding:20px 24px;margin-bottom:24px;">
-      <table width="100%" cellpadding="4" cellspacing="0">
-        <tr><td style="font-size:11px;color:#8aa0b8;">From</td><td style="font-size:14px;font-weight:700;color:#fff;text-align:right;">{full_name}</td></tr>
-        <tr><td style="font-size:11px;color:#8aa0b8;">Email</td><td style="font-size:14px;color:#e8a04a;text-align:right;">{email}</td></tr>
-        <tr><td style="font-size:11px;color:#8aa0b8;">Subject</td><td style="font-size:14px;color:#fff;text-align:right;">{subject}</td></tr>
-      </table>
-    </div>
-    <div style="font-size:11px;color:#8aa0b8;margin-bottom:10px;">MESSAGE</div>
-    <div style="background:#1e3352;border-left:3px solid #e8a04a;border-radius:0 8px 8px 0;
-      padding:18px 20px;font-size:14px;color:#e2e8f0;line-height:1.8;white-space:pre-wrap;">{message}</div>
-  </td></tr>
-  <tr><td style="background:#09131f;padding:16px 36px;font-size:11px;color:rgba(255,255,255,0.2);text-align:center;">
-    © 2026 ServiceReport Pro · Pune, India
-  </td></tr>
-</table>
-</td></tr>
-</table>
-</body></html>"""
-
-        msg = MIMEMultipart("alternative")
-        msg["Subject"]  = f"📩 Contact: {subject} — {full_name}"
-        msg["From"]     = f"ServiceReport Pro <{GMAIL_SENDER}>"
-        msg["To"]       = CONTACT_RECEIVER
-        msg["Reply-To"] = email
-        msg.attach(MIMEText(html, "html"))
-
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465, timeout=12) as s:
-            s.login(GMAIL_SENDER, GMAIL_PASSWORD)
-            s.sendmail(GMAIL_SENDER, CONTACT_RECEIVER, msg.as_string())
-
-        return jsonify(ok=True, message="Message sent successfully.")
-    except smtplib.SMTPAuthenticationError:
-        return jsonify(error="Gmail authentication failed."), 500
-    except Exception as e:
-        return jsonify(error=str(e)), 500
-
-
-# ================================================================
 # ─── SEND REPORT EMAIL ───────────────────────────────────────
 # ================================================================
 
 @app.route("/send-report-email", methods=["POST"])
 def send_report_email():
+    """
+    Sends a saved report as a professionally formatted HTML email.
+    Body: { from_name, from_email, to_email, cc_email, subject, report_id }
+    """
     try:
         data       = request.json or {}
         from_name  = data.get("from_name", "").strip()
@@ -556,6 +653,7 @@ def send_report_email():
         if not to_email or not report_id:
             return jsonify(error="Recipient email and report ID are required."), 400
 
+        # Fetch report from DB
         c = db(); cur = c.cursor()
         cur.execute("SELECT id, title, content, created_at FROM reports WHERE id=%s", (report_id,))
         row = cur.fetchone(); cur.close(); c.close()
@@ -566,9 +664,13 @@ def send_report_email():
         rid, title, content, created_at = row
         date_str = created_at.strftime("%d %B %Y") if created_at else ""
 
+        # Build beautiful HTML email
         html = build_report_email_html(title, content, date_str, from_name, message)
+
+        # Build plain-text fallback
         text = build_report_email_text(title, content, date_str, from_name, message)
 
+        # Compose message
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject or f"Service Report — {title}"
         msg["From"]    = f"{from_name or APP_NAME} <{GMAIL_SENDER}>"
@@ -585,14 +687,18 @@ def send_report_email():
             s.login(GMAIL_SENDER, GMAIL_PASSWORD)
             s.sendmail(GMAIL_SENDER, recipients, msg.as_string())
 
+        print(f"[REPORT EMAIL ✓] Sent report #{report_id} to {to_email}")
         return jsonify(ok=True, message=f"Report sent to {to_email} successfully.")
+
     except smtplib.SMTPAuthenticationError:
-        return jsonify(error="Gmail authentication failed."), 500
+        return jsonify(error="Gmail authentication failed. Check GMAIL_SENDER and GMAIL_PASSWORD in app.py."), 500
     except Exception as e:
+        print(f"[REPORT EMAIL ✗] {e}")
         return jsonify(error=f"Failed to send email: {str(e)}"), 500
 
 
 def parse_report_content(content):
+    """Parse plain-text report into a dict of fields."""
     lines = (content or "").split("\n")
     fields = {}
     faults = []
@@ -648,60 +754,92 @@ def build_report_email_html(title, content, date_str, sender_name, message):
     )
 
     return f"""<!DOCTYPE html>
-<html><head><meta charset="UTF-8"></head>
+<html><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1"></head>
 <body style="margin:0;padding:0;background:#09131f;font-family:Arial,Helvetica,sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#09131f;padding:40px 0;">
 <tr><td align="center">
 <table width="620" cellpadding="0" cellspacing="0" style="max-width:620px;width:100%;">
+
+  <!-- HEADER -->
   <tr><td style="background:#0f1c2e;border-radius:16px 16px 0 0;padding:28px 36px;border-bottom:1px solid rgba(255,255,255,0.08);">
     <table width="100%"><tr>
-      <td><div style="font-size:20px;font-weight:800;color:#fff;">ServiceReport <span style="color:#e8a04a;">Pro</span></div></td>
-      <td align="right"><div style="background:#e8a04a;color:#0f1c2e;font-size:10px;font-weight:800;padding:6px 14px;border-radius:6px;">SERVICE REPORT</div></td>
+      <td>
+        <div style="font-size:20px;font-weight:800;color:#fff;">ServiceReport <span style="color:#e8a04a;">Pro</span></div>
+        <div style="font-size:12px;color:#8aa0b8;margin-top:3px;">Professional Service Report</div>
+      </td>
+      <td align="right">
+        <div style="background:#e8a04a;color:#0f1c2e;font-size:10px;font-weight:800;
+          padding:6px 14px;border-radius:6px;letter-spacing:1.5px;text-transform:uppercase;">SERVICE REPORT</div>
+      </td>
     </tr></table>
   </td></tr>
+
+  <!-- BODY -->
   <tr><td style="background:#ffffff;padding:36px;">
+
     {msg_block}
-    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;padding:16px 20px;margin-bottom:24px;">
+
+    <!-- Title strip -->
+    <div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:10px;
+      padding:16px 20px;margin-bottom:24px;display:flex;justify-content:space-between;">
       <div style="font-size:17px;font-weight:800;color:#0f172a;">{title or "Service Report"}</div>
       <div style="font-size:12px;color:#64748b;margin-top:4px;">📅 {date_str}</div>
     </div>
+
     {section("Customer Details",
         f'<table width="100%" style="border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">'
         + row("Customer Name", f.get("customer",""))
-        + row("Address", f.get("address",""))
-        + row("City", f.get("city",""))
-        + row("UPS Model", f.get("model") or f.get("ups_model",""))
-        + row("KVA Rating", f.get("kva",""))
+        + row("Address",       f.get("address",""))
+        + row("City",          f.get("city",""))
+        + row("UPS Model",     f.get("model") or f.get("ups_model",""))
+        + row("KVA Rating",    f.get("kva",""))
         + "</table>"
     )}
-    {section("Type of Fault", f'<div style="padding:8px 0;">{faults_html}</div>')}
+
+    {section("Type of Fault",
+        f'<div style="padding:8px 0;">{faults_html}</div>'
+    )}
+
     {section("Observation",
-        f'<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;font-size:13px;color:#0f172a;line-height:1.8;">{f.get("observation","") or "—"}</div>'
+        f'<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;'
+        f'font-size:13px;color:#0f172a;line-height:1.8;">{f.get("observation","") or "—"}</div>'
     )}
+
     {section("Action Taken",
-        f'<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;font-size:13px;color:#0f172a;line-height:1.8;">{f.get("action_taken","") or "—"}</div>'
+        f'<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:8px;padding:14px 16px;'
+        f'font-size:13px;color:#0f172a;line-height:1.8;">{f.get("action_taken","") or "—"}</div>'
     )}
+
     {section("Maintenance Readings",
         f'<table width="100%" style="border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">'
-        + row("Input Voltage", f.get("input_voltage",""))
+        + row("Input Voltage",  f.get("input_voltage",""))
         + row("Output Voltage", f.get("output_voltage",""))
-        + row("Fan Status", f.get("fan_status",""))
+        + row("Fan Status",     f.get("fan_status",""))
         + "</table>"
     )}
+
     {section("Signatures",
         f'<table width="100%" style="border-collapse:collapse;border:1px solid #e2e8f0;border-radius:8px;overflow:hidden;">'
         + row("Engineer", f.get("engineer",""))
         + row("Customer", f.get("customer",""))
-        + row("Date", f.get("date", date_str))
+        + row("Date",     f.get("date", date_str))
         + "</table>"
     )}
+
   </td></tr>
+
+  <!-- FOOTER -->
   <tr><td style="background:#0f1c2e;padding:20px 36px;border-radius:0 0 16px 16px;">
     <table width="100%"><tr>
-      <td style="font-size:12px;color:#8aa0b8;">Sent via <strong style="color:#e8a04a;">{APP_NAME}</strong> · Pune, India</td>
-      <td align="right" style="font-size:11px;color:rgba(255,255,255,0.25);">Generated: {datetime.now().strftime("%d %b %Y, %I:%M %p")}</td>
+      <td style="font-size:12px;color:#8aa0b8;">
+        Sent via <strong style="color:#e8a04a;">{APP_NAME}</strong> · Pune, India
+      </td>
+      <td align="right" style="font-size:11px;color:rgba(255,255,255,0.25);">
+        Generated: {datetime.now().strftime("%d %b %Y, %I:%M %p")}
+      </td>
     </tr></table>
   </td></tr>
+
 </table>
 </td></tr></table>
 </body></html>"""
@@ -710,33 +848,55 @@ def build_report_email_html(title, content, date_str, sender_name, message):
 def build_report_email_text(title, content, date_str, sender_name, message):
     f = parse_report_content(content)
     lines = [
-        f"SERVICE REPORT — {APP_NAME}", "=" * 50,
-        f"Title  : {title}", f"Date   : {date_str}", "",
+        f"SERVICE REPORT — {APP_NAME}",
+        "=" * 50,
+        f"Title  : {title}",
+        f"Date   : {date_str}",
+        "",
     ]
     if message:
         lines += [f"Message from {sender_name or 'sender'}:", message, ""]
     lines += [
-        "CUSTOMER DETAILS", "-" * 30,
-        f"Customer : {f.get('customer','—')}", f"Address  : {f.get('address','—')}",
-        f"City     : {f.get('city','—')}", f"Model    : {f.get('model') or f.get('ups_model','—')}",
-        f"KVA      : {f.get('kva','—')}", "",
-        "FAULT TYPE", "-" * 30, ", ".join(f.get("faults", [])) or "None", "",
-        "OBSERVATION", "-" * 30, f.get("observation","—"), "",
-        "ACTION TAKEN", "-" * 30, f.get("action_taken","—"), "",
-        "MAINTENANCE", "-" * 30,
+        "CUSTOMER DETAILS",
+        "-" * 30,
+        f"Customer : {f.get('customer','—')}",
+        f"Address  : {f.get('address','—')}",
+        f"City     : {f.get('city','—')}",
+        f"Model    : {f.get('model') or f.get('ups_model','—')}",
+        f"KVA      : {f.get('kva','—')}",
+        "",
+        "FAULT TYPE",
+        "-" * 30,
+        ", ".join(f.get("faults", [])) or "None",
+        "",
+        "OBSERVATION",
+        "-" * 30,
+        f.get("observation","—"),
+        "",
+        "ACTION TAKEN",
+        "-" * 30,
+        f.get("action_taken","—"),
+        "",
+        "MAINTENANCE",
+        "-" * 30,
         f"Input Voltage  : {f.get('input_voltage','—')}",
         f"Output Voltage : {f.get('output_voltage','—')}",
-        f"Fan Status     : {f.get('fan_status','—')}", "",
-        "SIGNATURES", "-" * 30,
-        f"Engineer : {f.get('engineer','—')}", f"Customer : {f.get('customer','—')}",
-        f"Date     : {f.get('date', date_str)}", "",
-        "=" * 50, f"Sent via {APP_NAME} · Pune, India",
+        f"Fan Status     : {f.get('fan_status','—')}",
+        "",
+        "SIGNATURES",
+        "-" * 30,
+        f"Engineer : {f.get('engineer','—')}",
+        f"Customer : {f.get('customer','—')}",
+        f"Date     : {f.get('date', date_str)}",
+        "",
+        "=" * 50,
+        f"Sent via {APP_NAME} · Pune, India",
     ]
     return "\n".join(lines)
 
 
 # ================================================================
-# ─── REPORTS ─────────────────────────────────────────────────
+# ─── REPORTS (unchanged) ─────────────────────────────────────
 # ================================================================
 
 @app.route("/save-report", methods=["POST"])
@@ -781,10 +941,19 @@ def duplicate_report(rid):
 
 
 # ================================================================
-# ✅ FIX 4: Only ONE startup block — removed the duplicate
-# ================================================================
 if __name__ == "__main__":
     init_db()
-    port = int(os.environ.get("PORT", 5000))   # Render gives its own PORT
-    print(f"\n  {APP_NAME} running on port {port}\n")
-    app.run(host="0.0.0.0", port=port, debug=False)
+    print("\n" + "="*55)
+    print(f"  {APP_NAME} — Auth Server")
+    print(f"  http://127.0.0.1:5000")
+    print("="*55)
+    print(f"\n  📧  Email sender : {GMAIL_SENDER}")
+    print(f"  ⏱   OTP expires  : {OTP_EXPIRY_MIN} minutes")
+    print(f"  🔒  Max attempts : {MAX_ATTEMPTS}")
+    print("\n  Edit GMAIL_SENDER + GMAIL_PASSWORD before running!\n")
+    app.run(debug=True)
+
+import os
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))   # Render port
+    app.run(host="0.0.0.0", port=port)
