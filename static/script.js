@@ -82,7 +82,7 @@ async function saveReport() {
   status.innerText = "Saving...";
 
   try {
-    const res = await fetch("/save-report", {
+   const res = await fetch(`${BASE_URL}/save-report`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json"
@@ -104,7 +104,7 @@ async function saveReport() {
 
 /* EMAIL (UNCHANGED) */
 async function sendEmail() {
-  const res = await fetch("/send-email", {
+ const res = await fetch(`${BASE_URL}/send-email`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json"
