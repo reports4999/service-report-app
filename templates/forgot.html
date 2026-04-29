@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Forgot Password — ServiceReport Pro</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --ink:#08111d; --card:#0d1a29; --surface:#122033; --raised:#19304a;
+  --gold:#e8a04a; --gold-dim:rgba(232,160,74,0.13); --gold-border:rgba(232,160,74,0.3);
+  --mist:#7a9bb5; --snow:#f0f6ff; --red:#f05252; --green:#34d399;
+  --border:rgba(255,255,255,0.07);
+}
+html,body{min-height:100%;font-family:'Inter',sans-serif;background:var(--ink);color:var(--snow);}
+
+body{
+  display:flex;align-items:center;justify-content:center;
+  padding:48px 20px;
+  background:
+    radial-gradient(ellipse 70% 50% at 20% 40%, rgba(232,160,74,0.05) 0%,transparent 60%),
+    radial-gradient(ellipse 60% 50% at 80% 60%, rgba(74,144,226,0.04) 0%,transparent 60%),
+    var(--ink);
+}
+
+.page-wrap{
+  width:100%;max-width:1000px;
+  display:grid;grid-template-columns:340px 1fr;
+  gap:0;
+  background:var(--card);
+  border:1px solid var(--border);
+  border-radius:24px;
+  overflow:hidden;
+  box-shadow:0 40px 80px rgba(0,0,0,0.5);
+}
+
+/* ── LEFT SIDEBAR ── */
+.sidebar{
+  background:var(--surface);
+  border-right:1px solid var(--border);
+  padding:44px 36px;
+  display:flex;flex-direction:column;
+  position:relative;overflow:hidden;
+}
+.sidebar::before{content:'';position:absolute;bottom:-60px;right:-60px;width:240px;height:240px;background:radial-gradient(circle,rgba(232,160,74,0.06) 0%,transparent 70%);}
+
+.logo{display:flex;align-items:center;gap:9px;font-family:'Syne',sans-serif;font-size:17px;font-weight:700;text-decoration:none;color:var(--snow);margin-bottom:48px;position:relative;z-index:1;}
+.logo-dot{width:7px;height:7px;background:var(--gold);border-radius:50%;box-shadow:0 0 10px rgba(232,160,74,.5);}
+
+.sb-icon{font-size:40px;margin-bottom:20px;position:relative;z-index:1;}
+.sb-title{font-family:'Syne',sans-serif;font-size:22px;font-weight:700;margin-bottom:10px;position:relative;z-index:1;}
+.sb-desc{font-size:13px;color:var(--mist);line-height:1.75;position:relative;z-index:1;}
+
+/* step timeline */
+.timeline{margin-top:40px;display:flex;flex-direction:column;gap:0;position:relative;z-index:1;}
+.timeline::before{content:'';position:absolute;left:15px;top:20px;bottom:20px;width:1.5px;background:var(--border);}
+
+.tl-item{display:flex;align-items:center;gap:14px;padding:10px 0;}
+.tl-dot{
+  width:32px;height:32px;flex-shrink:0;
+  border-radius:50%;border:1.5px solid var(--border);
+  background:var(--surface);
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:var(--mist);
+  position:relative;z-index:1;transition:all .3s;
+}
+.tl-item.active .tl-dot{border-color:var(--gold);color:var(--gold);background:var(--gold-dim);}
+.tl-item.done .tl-dot{background:var(--gold);border-color:var(--gold);color:var(--ink);font-size:13px;}
+.tl-text{font-size:13px;}
+.tl-name{color:var(--snow);font-weight:500;margin-bottom:2px;}
+.tl-item.active .tl-name{color:var(--gold);}
+.tl-hint{color:var(--mist);font-size:12px;}
+
+.sb-back{
+  margin-top:auto;padding-top:32px;
+  display:flex;align-items:center;gap:8px;
+  font-size:13px;color:var(--mist);
+  text-decoration:none;transition:color .2s;
+  position:relative;z-index:1;
+}
+.sb-back:hover{color:var(--gold);}
+
+/* ── MAIN ── */
+.main{padding:44px 48px;display:flex;align-items:center;}
+.form-wrap{width:100%;max-width:400px;margin:0 auto;}
+
+.form-step{display:none;animation:fadeUp .3s ease both;}
+.form-step.active{display:block;}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+
+.step-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:800;margin-bottom:8px;}
+.step-sub{font-size:14px;color:var(--mist);margin-bottom:28px;line-height:1.65;}
+.step-sub strong{color:var(--gold);}
+
+.alert{display:none;align-items:flex-start;gap:10px;padding:13px 16px;border-radius:11px;font-size:13px;font-weight:500;margin-bottom:20px;line-height:1.5;}
+.alert.error{background:rgba(240,82,82,.1);border:1px solid rgba(240,82,82,.25);color:#fca5a5;display:flex;}
+.alert.success{background:rgba(52,211,153,.1);border:1px solid rgba(52,211,153,.25);color:#6ee7b7;display:flex;}
+.alert.info{background:rgba(232,160,74,.08);border:1px solid rgba(232,160,74,.2);color:#fcd38d;display:flex;}
+
+.field{margin-bottom:18px;}
+.field label{display:block;font-size:11px;font-weight:600;letter-spacing:1.2px;text-transform:uppercase;color:var(--mist);margin-bottom:8px;}
+.field input{
+  width:100%;background:rgba(255,255,255,0.04);border:1px solid var(--border);
+  border-radius:11px;padding:13px 16px;color:var(--snow);
+  font-family:'Inter',sans-serif;font-size:14px;outline:none;transition:all .2s;
+}
+.field input:focus{border-color:var(--gold-border);background:rgba(232,160,74,0.04);box-shadow:0 0 0 3px rgba(232,160,74,.06);}
+.field input.err{border-color:rgba(240,82,82,.5);}
+.ferr{font-size:11px;color:#fca5a5;margin-top:5px;display:none;}
+
+.eye-wrap{position:relative;}
+.eye-btn{position:absolute;right:14px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:12px;font-weight:600;color:var(--gold);font-family:'Inter',sans-serif;}
+
+/* OTP */
+.otp-row{display:flex;gap:8px;}
+.otp-row input{
+  flex:1;min-width:0;height:60px;
+  text-align:center;font-size:24px;font-weight:700;
+  font-family:'Syne',sans-serif;
+  background:rgba(255,255,255,0.04);border:1.5px solid var(--border);
+  border-radius:12px;color:var(--snow);outline:none;
+  caret-color:var(--gold);transition:all .2s;
+}
+.otp-row input:focus{border-color:var(--gold);background:var(--gold-dim);box-shadow:0 0 0 4px rgba(232,160,74,.1);transform:scale(1.04);}
+.otp-row input.filled{border-color:var(--gold-border);}
+.otp-row input.shake{animation:shake .35s ease;}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+
+.otp-meta{display:flex;align-items:center;justify-content:space-between;margin-top:10px;}
+.resend-btn{font-size:12px;font-weight:600;color:var(--gold);background:none;border:none;cursor:pointer;font-family:'Inter',sans-serif;padding:0;}
+.resend-btn:disabled{color:var(--mist);cursor:default;}
+.resend-timer{font-size:12px;color:var(--mist);}
+
+.sent-note{display:flex;align-items:center;gap:10px;padding:12px 15px;background:rgba(52,211,153,0.06);border:1px solid rgba(52,211,153,0.18);border-radius:10px;margin-bottom:22px;font-size:13px;color:#6ee7b7;}
+
+/* password strength */
+.pw-track{height:3px;border-radius:3px;background:var(--raised);overflow:hidden;margin-top:8px;}
+.pw-fill{height:100%;border-radius:3px;transition:width .3s,background .3s;width:0%;}
+.pw-label{font-size:11px;color:var(--mist);margin-top:4px;}
+
+.btn{
+  width:100%;padding:14px;background:var(--gold);color:var(--ink);
+  border:none;border-radius:12px;
+  font-family:'Syne',sans-serif;font-size:15px;font-weight:700;
+  cursor:pointer;transition:all .2s;
+  display:flex;align-items:center;justify-content:center;gap:9px;margin-top:6px;
+}
+.btn:hover{background:#f0b05e;transform:translateY(-2px);box-shadow:0 10px 30px rgba(232,160,74,.3);}
+.btn:disabled{opacity:.55;cursor:not-allowed;transform:none;box-shadow:none;}
+
+.spinner{width:16px;height:16px;border:2.5px solid rgba(8,17,29,.3);border-top-color:var(--ink);border-radius:50%;animation:spin .6s linear infinite;display:none;}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+.form-foot{text-align:center;font-size:13px;color:var(--mist);margin-top:18px;}
+.form-foot a,.form-foot .lnk{color:var(--gold);text-decoration:none;font-weight:600;cursor:pointer;}
+.form-foot a:hover,.form-foot .lnk:hover{text-decoration:underline;}
+
+/* success */
+.success-wrap{text-align:center;padding:20px 0;}
+.s-icon{width:80px;height:80px;background:rgba(52,211,153,.1);border:2px solid rgba(52,211,153,.3);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:36px;margin:0 auto 24px;animation:pop .5s cubic-bezier(.34,1.56,.64,1) both;}
+@keyframes pop{from{transform:scale(0);opacity:0}to{transform:scale(1);opacity:1}}
+.s-title{font-family:'Syne',sans-serif;font-size:26px;font-weight:700;margin-bottom:10px;}
+.s-sub{font-size:14px;color:var(--mist);margin-bottom:28px;line-height:1.6;}
+.pbar{height:3px;background:var(--raised);border-radius:3px;overflow:hidden;}
+.pfill{height:100%;background:var(--gold);border-radius:3px;animation:pbanim 2.5s ease forwards;}
+@keyframes pbanim{from{width:0}to{width:100%}}
+
+@media(max-width:768px){
+  .page-wrap{grid-template-columns:1fr;}
+  .sidebar{display:none;}
+  .main{padding:36px 28px;}
+}
+</style>
+</head>
+<body>
+
+<div class="page-wrap">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <a href="index.html" class="logo"><div class="logo-dot"></div>ServiceReport <span style="color:var(--gold)">Pro</span></a>
+
+    <div class="sb-icon">🔒</div>
+    <div class="sb-title">Reset your password</div>
+    <p class="sb-desc">Follow the 3-step process to securely reset your password using your registered email.</p>
+
+    <div class="timeline">
+      <div class="tl-item active" id="tl0">
+        <div class="tl-dot">1</div>
+        <div class="tl-text"><div class="tl-name">Enter Email</div><div class="tl-hint">We'll send a reset code</div></div>
+      </div>
+      <div class="tl-item" id="tl1">
+        <div class="tl-dot">2</div>
+        <div class="tl-text"><div class="tl-name">Verify OTP</div><div class="tl-hint">6-digit code from your inbox</div></div>
+      </div>
+      <div class="tl-item" id="tl2">
+        <div class="tl-dot">3</div>
+        <div class="tl-text"><div class="tl-name">New Password</div><div class="tl-hint">Choose a secure password</div></div>
+      </div>
+      <div class="tl-item" id="tl3">
+        <div class="tl-dot">✓</div>
+        <div class="tl-text"><div class="tl-name">Done!</div><div class="tl-hint">Log in with new credentials</div></div>
+      </div>
+    </div>
+
+    <a href="/login.html" class="sb-back">← Back to sign in</a>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+  <div class="form-wrap">
+
+    <!-- STEP 1: Email -->
+    <div class="form-step active" id="s1">
+      <div class="step-title">Forgot your password?</div>
+      <p class="step-sub">No worries. Enter your registered email and we'll send you a one-time reset code.</p>
+
+      <div class="alert" id="s1alert"></div>
+
+      <div class="field">
+        <label>Registered Email</label>
+        <input type="email" id="email" placeholder="you@company.com" autocomplete="email">
+        <div class="ferr" id="em-err">Enter a valid email address.</div>
+      </div>
+
+      <button class="btn" id="s1btn" onclick="sendForgotOTP()">
+        <span id="s1txt">Send Reset Code</span>
+        <div class="spinner" id="s1spin"></div>
+      </button>
+
+      <div class="form-foot">Remembered it? <a href="/login.html">Sign in</a></div>
+    </div>
+
+    <!-- STEP 2: OTP -->
+    <div class="form-step" id="s2">
+      <div class="step-title">Enter reset code</div>
+      <p class="step-sub" id="otp-sub">A 6-digit code was sent to your email.</p>
+
+      <div class="sent-note">
+        <span>📧</span>
+        <span>Code sent to <strong id="masked-email">your email</strong></span>
+      </div>
+
+      <div class="alert" id="s2alert"></div>
+
+      <div class="field">
+        <label>6-digit OTP</label>
+        <div class="otp-row" id="otpBox">
+          <input maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+          <input maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+          <input maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+          <input maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+          <input maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+          <input maxlength="1" type="text" inputmode="numeric" pattern="[0-9]">
+        </div>
+        <div class="otp-meta">
+          <button class="resend-btn" id="resendBtn" onclick="resendForgotOTP()" disabled>Resend code</button>
+          <span class="resend-timer" id="resendTimer">Resend in <strong id="cd">60</strong>s</span>
+        </div>
+      </div>
+
+      <button class="btn" id="s2btn" onclick="verifyForgotOTP()">
+        <span id="s2txt">Verify Code</span>
+        <div class="spinner" id="s2spin"></div>
+      </button>
+
+      <div class="form-foot"><span class="lnk" onclick="goStep(0,0)">← Change email</span></div>
+    </div>
+
+    <!-- STEP 3: New Password -->
+    <div class="form-step" id="s3">
+      <div class="step-title">Set new password</div>
+      <p class="step-sub">Choose a strong password. You'll use this to sign in from now on.</p>
+
+      <div class="alert" id="s3alert"></div>
+
+      <div class="field">
+        <label>New Password</label>
+        <div class="eye-wrap">
+          <input type="password" id="newpw" placeholder="Min. 6 characters" autocomplete="new-password">
+          <button class="eye-btn" type="button" onclick="toggleEye('newpw',this)">Show</button>
+        </div>
+        <div class="pw-track"><div class="pw-fill" id="pw-fill"></div></div>
+        <div class="pw-label" id="pw-label"></div>
+        <div class="ferr" id="pw-err">Password must be at least 6 characters.</div>
+      </div>
+
+      <div class="field">
+        <label>Confirm New Password</label>
+        <div class="eye-wrap">
+          <input type="password" id="confirmpw" placeholder="Repeat password" autocomplete="new-password">
+          <button class="eye-btn" type="button" onclick="toggleEye('confirmpw',this)">Show</button>
+        </div>
+        <div class="ferr" id="cf-err">Passwords do not match.</div>
+      </div>
+
+      <button class="btn" id="s3btn" onclick="resetPassword()">
+        <span id="s3txt">Update Password</span>
+        <div class="spinner" id="s3spin"></div>
+      </button>
+    </div>
+
+    <!-- STEP 4: Done -->
+    <div class="form-step" id="s4">
+      <div class="success-wrap">
+        <div class="s-icon">🔓</div>
+        <div class="s-title">Password updated!</div>
+        <p class="s-sub">Your password has been changed successfully. Redirecting you to the login page...</p>
+        <div class="pbar"><div class="pfill"></div></div>
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+</div>
+
+<script>
+const B = "http://127.0.0.1:5000";
+let _cdInt;
+
+function toggleEye(id, btn) {
+  const el = document.getElementById(id);
+  el.type = el.type==='password'?'text':'password';
+  btn.textContent = el.type==='password'?'Show':'Hide';
+}
+
+function showAlert(id,msg,type){const el=document.getElementById(id);el.textContent=(type==='error'?'⚠ ':'✓ ')+msg;el.className='alert '+type;}
+function clearAlert(id){document.getElementById(id).className='alert';}
+
+function goStep(step, tl) {
+  document.querySelectorAll('.form-step').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s'+(step+1)).classList.add('active');
+  ['tl0','tl1','tl2','tl3'].forEach((id,i)=>{
+    const el=document.getElementById(id);
+    el.className='tl-item'+(i<tl?' done':i===tl?' active':'');
+    const dot=el.querySelector('.tl-dot');
+    if(i<tl){dot.textContent='✓';}
+    else{dot.textContent=(i+1).toString();}
+  });
+}
+
+// OTP helpers
+function setupOTP(id){
+  const inputs=[...document.querySelectorAll('#'+id+' input')];
+  inputs.forEach((inp,idx)=>{
+    inp.addEventListener('input',()=>{
+      const v=inp.value.replace(/[^0-9]/g,'');
+      inp.value=v?v[v.length-1]:'';
+      inp.classList.toggle('filled',!!inp.value);
+      if(inp.value&&idx<inputs.length-1)inputs[idx+1].focus();
+    });
+    inp.addEventListener('keydown',e=>{
+      if(e.key==='Backspace'&&!inp.value&&idx>0){inputs[idx-1].value='';inputs[idx-1].classList.remove('filled');inputs[idx-1].focus();}
+    });
+    inp.addEventListener('paste',e=>{
+      e.preventDefault();
+      const txt=(e.clipboardData||window.clipboardData).getData('text').replace(/[^0-9]/g,'').slice(0,6);
+      [...txt].forEach((ch,i)=>{if(inputs[idx+i]){inputs[idx+i].value=ch;inputs[idx+i].classList.add('filled');}});
+      const nxt=inputs[Math.min(idx+txt.length,inputs.length-1)];if(nxt)nxt.focus();
+    });
+  });
+}
+function getOTP(id){return[...document.querySelectorAll('#'+id+' input')].map(i=>i.value).join('');}
+function shakeOTP(id){
+  document.querySelectorAll('#'+id+' input').forEach(el=>{
+    el.classList.remove('shake');void el.offsetWidth;el.classList.add('shake');
+    setTimeout(()=>el.classList.remove('shake'),400);
+  });
+}
+
+function startCountdown(cdId,btnId,timerId,sec=60){
+  clearInterval(_cdInt);
+  let s=sec;
+  const cd=document.getElementById(cdId),btn=document.getElementById(btnId),tr=document.getElementById(timerId);
+  btn.disabled=true;tr.style.display='';cd.textContent=s;
+  _cdInt=setInterval(()=>{s--;cd.textContent=s;if(s<=0){clearInterval(_cdInt);btn.disabled=false;tr.style.display='none';}},1000);
+}
+
+// password strength
+document.getElementById('newpw').addEventListener('input',function(){
+  const v=this.value;let sc=0;
+  if(v.length>=6)sc++;if(v.length>=10)sc++;if(/[A-Z]/.test(v))sc++;if(/[0-9]/.test(v))sc++;if(/[^A-Za-z0-9]/.test(v))sc++;
+  const map=[{w:'0%',c:'',t:''},{w:'25%',c:'#f05252',t:'Weak'},{w:'50%',c:'#f59e0b',t:'Fair'},{w:'75%',c:'#60a5fa',t:'Good'},{w:'100%',c:'#34d399',t:'Strong'}];
+  const l=map[Math.min(sc,4)];
+  document.getElementById('pw-fill').style.cssText=`width:${l.w};background:${l.c}`;
+  document.getElementById('pw-label').textContent=l.t;document.getElementById('pw-label').style.color=l.c;
+});
+
+// ── STEP 1: Send OTP ──────────────────────────────────
+document.getElementById('s1txt')._default='Send Reset Code';
+
+async function sendForgotOTP(){
+  clearAlert('s1alert');
+  const email=document.getElementById('email').value.trim();
+  if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
+    document.getElementById('email').classList.add('err');
+    document.getElementById('em-err').style.display='block';return;
+  }
+  document.getElementById('email').classList.remove('err');
+  document.getElementById('em-err').style.display='none';
+
+  const btn=document.getElementById('s1btn');
+  btn.disabled=true;document.getElementById('s1txt').textContent='Sending...';document.getElementById('s1spin').style.display='block';
+
+  try{
+    const res=await fetch(B+'/forgot/send-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email}),credentials:'include'});
+    const data=await res.json();
+    if(!res.ok){showAlert('s1alert',data.error||'Failed to send.','error');btn.disabled=false;document.getElementById('s1txt').textContent='Send Reset Code';document.getElementById('s1spin').style.display='none';return;}
+
+    document.getElementById('masked-email').textContent=data.masked;
+    document.getElementById('otp-sub').innerHTML=`A 6-digit code was sent to <strong style="color:var(--gold)">${data.masked}</strong>. Check your inbox.`;
+    setupOTP('otpBox');
+    startCountdown('cd','resendBtn','resendTimer',60);
+    goStep(1,1);
+    setTimeout(()=>document.querySelector('#otpBox input').focus(),100);
+
+  }catch{showAlert('s1alert','Cannot connect to server.','error');}
+  btn.disabled=false;document.getElementById('s1txt').textContent='Send Reset Code';document.getElementById('s1spin').style.display='none';
+}
+
+// ── STEP 2: Verify OTP ───────────────────────────────
+document.getElementById('s2txt')._default='Verify Code';
+
+async function verifyForgotOTP(){
+  clearAlert('s2alert');
+  const otp=getOTP('otpBox');
+  if(otp.length<6){shakeOTP('otpBox');showAlert('s2alert','Enter the complete 6-digit code.','error');return;}
+
+  const btn=document.getElementById('s2btn');
+  btn.disabled=true;document.getElementById('s2txt').textContent='Verifying...';document.getElementById('s2spin').style.display='block';
+
+  try{
+    const res=await fetch(B+'/forgot/verify-otp',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({otp}),credentials:'include'});
+    const data=await res.json();
+    if(!res.ok){shakeOTP('otpBox');showAlert('s2alert',data.error||'Incorrect code.','error');btn.disabled=false;document.getElementById('s2txt').textContent='Verify Code';document.getElementById('s2spin').style.display='none';return;}
+
+    clearInterval(_cdInt);
+    goStep(2,2);
+
+  }catch{showAlert('s2alert','Cannot connect to server.','error');}
+  btn.disabled=false;document.getElementById('s2txt').textContent='Verify Code';document.getElementById('s2spin').style.display='none';
+}
+
+async function resendForgotOTP(){
+  try{
+    const res=await fetch(B+'/forgot/resend-otp',{method:'POST',credentials:'include'});
+    const d=await res.json();
+    showAlert('s2alert',d.message||'New code sent.','success');
+    startCountdown('cd','resendBtn','resendTimer',60);
+  }catch{showAlert('s2alert','Failed to resend.','error');}
+}
+
+// ── STEP 3: New Password ─────────────────────────────
+document.getElementById('s3txt')._default='Update Password';
+
+async function resetPassword(){
+  clearAlert('s3alert');
+  const pw=document.getElementById('newpw').value;
+  const cf=document.getElementById('confirmpw').value;
+  let ok=true;
+
+  document.getElementById('pw-err').style.display=pw.length>=6?'none':'block';
+  if(pw.length<6){document.getElementById('newpw').classList.add('err');ok=false;}else{document.getElementById('newpw').classList.remove('err');}
+  document.getElementById('cf-err').style.display=pw===cf?'none':'block';
+  if(pw!==cf){document.getElementById('confirmpw').classList.add('err');ok=false;}else{document.getElementById('confirmpw').classList.remove('err');}
+  if(!ok)return;
+
+  const btn=document.getElementById('s3btn');
+  btn.disabled=true;document.getElementById('s3txt').textContent='Updating...';document.getElementById('s3spin').style.display='block';
+
+  try{
+    const res=await fetch(B+'/forgot/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({password:pw}),credentials:'include'});
+    const data=await res.json();
+    if(!res.ok){showAlert('s3alert',data.error||'Failed to reset.','error');btn.disabled=false;document.getElementById('s3txt').textContent='Update Password';document.getElementById('s3spin').style.display='none';return;}
+
+    goStep(3,3);
+    setTimeout(()=>window.location.href='/login.html',2800);
+
+  }catch{showAlert('s3alert','Cannot connect to server.','error');}
+  btn.disabled=false;document.getElementById('s3txt').textContent='Update Password';document.getElementById('s3spin').style.display='none';
+}
+
+// Enter key
+document.addEventListener('keydown',e=>{
+  if(e.key!=='Enter')return;
+  if(document.getElementById('s1').classList.contains('active'))sendForgotOTP();
+  if(document.getElementById('s2').classList.contains('active'))verifyForgotOTP();
+  if(document.getElementById('s3').classList.contains('active'))resetPassword();
+});
+</script>
+</body>
+</html>

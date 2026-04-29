@@ -1,0 +1,711 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Send Report — ServiceReport Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --navy: #0f1c2e;
+      --navy-mid: #162236;
+      --navy-light: #1e3352;
+      --accent: #e8a04a;
+      --accent-light: #f2c47a;
+      --mist: #8aa0b8;
+      --snow: #f0f6ff;
+      --white: #ffffff;
+      --border: rgba(255,255,255,0.08);
+      --danger: #ff5f56;
+      --success: #34d399;
+      --blue: #4a90e2;
+    }
+
+    html, body { font-family: 'DM Sans', sans-serif; background: var(--navy); color: var(--white); min-height: 100vh; }
+
+    /* ── NAV ── */
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px; height: 66px;
+      background: rgba(15,28,46,0.97);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 9px; font-family: 'DM Serif Display', serif; font-size: 19px; text-decoration: none; color: var(--white); }
+    .nav-logo .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+    .nav-links { display: flex; align-items: center; gap: 8px; }
+    .nav-links a { color: var(--mist); text-decoration: none; font-size: 14px; font-weight: 500; padding: 7px 14px; border-radius: 8px; transition: all .2s; }
+    .nav-links a:hover { color: var(--white); background: rgba(255,255,255,0.06); }
+    .nav-links a.active { color: var(--accent); }
+
+    /* ── PAGE ── */
+    .page { max-width: 1200px; margin: 0 auto; padding: 40px 48px; }
+
+    .page-header { margin-bottom: 32px; }
+    .back-btn {
+      display: inline-flex; align-items: center; gap: 7px;
+      color: var(--mist); text-decoration: none;
+      font-size: 13px; font-weight: 600;
+      padding: 7px 14px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      transition: all .2s;
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+    .back-btn:hover { color: var(--white); border-color: rgba(255,255,255,0.2); }
+    .page-title { font-family: 'DM Serif Display', serif; font-size: 32px; }
+    .page-title em { font-style: italic; color: var(--accent); }
+    .page-subtitle { font-size: 14px; color: var(--mist); margin-top: 6px; }
+
+    /* ── TWO COLUMN ── */
+    .layout { display: grid; grid-template-columns: 1fr 420px; gap: 28px; align-items: start; }
+
+    /* ── REPORT PREVIEW CARD ── */
+    .preview-card {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+    }
+
+    .preview-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 24px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+
+    .preview-card-title { font-size: 14px; font-weight: 600; color: var(--mist); }
+
+    .preview-card-body { padding: 28px; }
+
+    /* ── THE REPORT (white paper style) ── */
+    .report-paper {
+      background: #fff;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 8px 40px rgba(0,0,0,0.35);
+      font-family: Arial, Helvetica, sans-serif;
+      color: #1a1a2e;
+    }
+
+    .rp-head {
+      background: #0f1c2e;
+      padding: 20px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .rp-brand { font-size: 18px; font-weight: 800; color: #fff; }
+    .rp-brand span { color: #e8a04a; }
+    .rp-brand-sub { font-size: 11px; color: #8aa0b8; margin-top: 2px; }
+    .rp-badge { background: #e8a04a; color: #0f1c2e; font-size: 10px; font-weight: 800; padding: 5px 12px; border-radius: 5px; letter-spacing: 1px; text-transform: uppercase; }
+
+    .rp-body { padding: 22px 28px; }
+
+    .rp-title-strip {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 12px 16px;
+      display: flex; justify-content: space-between; align-items: center;
+      margin-bottom: 18px;
+    }
+    .rp-report-name { font-size: 14px; font-weight: 800; color: #0f172a; }
+    .rp-date { font-size: 12px; color: #64748b; }
+
+    .rp-section { margin-bottom: 16px; }
+    .rp-section-label {
+      background: #fff8ee;
+      border-left: 3px solid #e8a04a;
+      padding: 5px 12px;
+      font-size: 9px; font-weight: 800;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: #92400e;
+      margin-bottom: 10px;
+      border-radius: 0 4px 4px 0;
+    }
+
+    .rp-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+
+    .rp-field {
+      flex: 1; min-width: 120px;
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 6px;
+      padding: 8px 12px;
+    }
+    .rp-field-label { font-size: 9px; font-weight: 700; color: #94a3b8; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+    .rp-field-value { font-size: 12px; color: #0f172a; font-weight: 500; }
+    .rp-field-value.empty { color: #cbd5e1; font-style: italic; }
+
+    .rp-fault-chips { display: flex; flex-wrap: wrap; gap: 5px; padding: 4px 0; }
+    .rp-chip { background: #fff3cd; border: 1px solid #f59e0b; color: #92400e; border-radius: 20px; font-size: 10px; font-weight: 700; padding: 3px 10px; }
+
+    .rp-footer-strip {
+      background: #0f1c2e;
+      padding: 12px 28px;
+      display: flex; justify-content: space-between; align-items: center;
+    }
+    .rp-footer-text { font-size: 11px; color: #8aa0b8; }
+    .rp-footer-text span { color: #e8a04a; font-weight: 700; }
+
+    /* ── COMPOSE FORM ── */
+    .compose-card {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      position: sticky;
+      top: 84px;
+    }
+
+    .compose-header {
+      padding: 20px 24px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(255,255,255,0.02);
+    }
+    .compose-title { font-family: 'DM Serif Display', serif; font-size: 20px; }
+    .compose-sub { font-size: 13px; color: var(--mist); margin-top: 4px; }
+
+    .compose-body { padding: 24px; display: flex; flex-direction: column; gap: 16px; }
+
+    /* sender info strip */
+    .sender-strip {
+      display: flex; align-items: center; gap: 10px;
+      padding: 12px 14px;
+      background: rgba(232,160,74,0.07);
+      border: 1px solid rgba(232,160,74,0.2);
+      border-radius: 10px;
+    }
+    .sender-icon { width: 34px; height: 34px; background: rgba(232,160,74,0.15); border: 1px solid rgba(232,160,74,0.3); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .sender-info { font-size: 12px; }
+    .sender-label { color: var(--mist); margin-bottom: 2px; }
+    .sender-email { color: var(--accent); font-weight: 600; font-size: 13px; }
+
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-group label { font-size: 11px; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; color: var(--mist); }
+    .form-group input, .form-group textarea, .form-group select {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: all .2s;
+    }
+    .form-group input:focus, .form-group textarea:focus {
+      border-color: rgba(232,160,74,0.45);
+      background: rgba(232,160,74,0.03);
+    }
+    .form-group textarea { resize: vertical; min-height: 80px; }
+
+    /* recipient tags */
+    .to-wrap {
+      display: flex; flex-wrap: wrap; gap: 6px;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 12px;
+      cursor: text;
+      min-height: 46px;
+      align-items: center;
+      transition: border-color .2s;
+    }
+    .to-wrap:focus-within { border-color: rgba(232,160,74,0.45); }
+
+    .email-tag {
+      display: flex; align-items: center; gap: 5px;
+      background: rgba(74,144,226,0.15);
+      border: 1px solid rgba(74,144,226,0.3);
+      color: #a8d0fb;
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .email-tag button { background: none; border: none; cursor: pointer; color: #7eb8f7; font-size: 14px; line-height: 1; padding: 0 0 0 2px; transition: color .2s; }
+    .email-tag button:hover { color: var(--danger); }
+
+    .to-input {
+      background: none !important;
+      border: none !important;
+      outline: none;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      padding: 2px 4px !important;
+      min-width: 160px;
+      flex: 1;
+    }
+    .to-hint { font-size: 11px; color: var(--mist); margin-top: -10px; }
+
+    /* alert */
+    .alert { display: none; align-items: flex-start; gap: 10px; padding: 12px 16px; border-radius: 10px; font-size: 13px; font-weight: 500; margin-bottom: 4px; line-height: 1.5; }
+    .alert.error   { background: rgba(255,95,86,0.1);  border: 1px solid rgba(255,95,86,0.25);  color: #fca5a5; display: flex; }
+    .alert.success { background: rgba(52,211,153,0.1); border: 1px solid rgba(52,211,153,0.25); color: #6ee7b7; display: flex; }
+
+    /* send button */
+    .send-btn {
+      width: 100%;
+      padding: 14px;
+      background: var(--accent);
+      color: var(--navy);
+      border: none; border-radius: 11px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      display: flex; align-items: center; justify-content: center; gap: 9px;
+    }
+    .send-btn:hover { background: var(--accent-light); transform: translateY(-2px); box-shadow: 0 10px 28px rgba(232,160,74,.3); }
+    .send-btn:disabled { opacity: .55; cursor: not-allowed; transform: none; box-shadow: none; }
+
+    .spinner { width: 16px; height: 16px; border: 2.5px solid rgba(15,28,46,.3); border-top-color: var(--navy); border-radius: 50%; animation: spin .6s linear infinite; display: none; }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* loading skeleton */
+    .skeleton { background: rgba(255,255,255,0.05); border-radius: 8px; animation: shimmer 1.4s infinite; }
+    @keyframes shimmer { 0%,100% { opacity:.3 } 50% { opacity:.7 } }
+
+    /* not found */
+    .not-found { text-align: center; padding: 80px 20px; }
+    .not-found h2 { font-family: 'DM Serif Display', serif; font-size: 28px; margin-bottom: 10px; }
+    .not-found p { color: var(--mist); margin-bottom: 24px; }
+
+    @media (max-width: 900px) {
+      .layout { grid-template-columns: 1fr; }
+      .compose-card { position: static; }
+      nav { padding: 0 20px; }
+      .page { padding: 24px 20px; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo"><div class="dot"></div>ServiceReport <span style="color:var(--accent)">Pro</span></a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="/portfolio.html">Create Report</a>
+    <a href="/manage.html">Manage Reports</a>
+    <a href="/send_email.html" class="active">Send Email</a>
+  </div>
+</nav>
+
+<div class="page">
+
+  <div class="page-header">
+    <a class="back-btn" onclick="history.back()">← Back</a>
+    <div class="page-title">Send <em>Report</em> by Email</div>
+    <div class="page-subtitle">Preview your report and send it to anyone directly from here.</div>
+  </div>
+
+  <div id="loadingState" style="text-align:center;padding:60px;color:var(--mist);">
+    <div style="font-size:32px;margin-bottom:12px;">⏳</div>
+    Loading report...
+  </div>
+
+  <div class="layout" id="mainLayout" style="display:none;">
+
+    <!-- LEFT: REPORT PREVIEW -->
+    <div class="preview-card">
+      <div class="preview-card-header">
+        <div class="preview-card-title">📄 Report Preview — exactly what the recipient will see</div>
+      </div>
+      <div class="preview-card-body">
+        <div class="report-paper" id="reportPaper">
+          <!-- filled by JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: COMPOSE FORM -->
+    <div class="compose-card">
+      <div class="compose-header">
+        <div class="compose-title">Compose Email</div>
+        <div class="compose-sub">Fill in recipient details and send.</div>
+      </div>
+
+      <div class="compose-body">
+
+        <!-- Sender strip -->
+        <div class="sender-strip">
+          <div class="sender-icon">📤</div>
+          <div class="sender-info">
+            <div class="sender-label">Sending from</div>
+            <div class="sender-email" id="senderEmailDisplay">Loading...</div>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label>Your Name (Sender)</label>
+          <input type="text" id="fromName" placeholder="e.g. Rahul Phadnis — Service Engineer">
+        </div>
+
+        <!-- To (multi-tag) -->
+        <div class="form-group">
+          <label>To — Recipients <span style="color:var(--danger)">*</span></label>
+          <div class="to-wrap" id="toWrap" onclick="document.getElementById('toInput').focus()">
+            <input id="toInput" class="to-input" type="email" placeholder="Type email and press Enter or comma...">
+          </div>
+          <div class="to-hint">Press <strong>Enter</strong> or <strong>,</strong> to add multiple recipients</div>
+        </div>
+
+        <div class="form-group">
+          <label>CC (optional)</label>
+          <input type="email" id="ccEmail" placeholder="cc@example.com">
+        </div>
+
+        <div class="form-group">
+          <label>Subject</label>
+          <input type="text" id="subject" placeholder="Service Report — ...">
+        </div>
+
+        <div class="form-group">
+          <label>Personal Message (optional)</label>
+          <textarea id="message" placeholder="Add a short note to the recipient..."></textarea>
+        </div>
+
+        <div class="alert" id="alert"></div>
+
+        <button class="send-btn" id="sendBtn" onclick="sendEmail()">
+          <span id="sendTxt">📧 Send Report</span>
+          <div class="spinner" id="sendSpin"></div>
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Report not found -->
+  <div class="not-found" id="notFound" style="display:none;">
+    <div style="font-size:48px;margin-bottom:16px;">🔍</div>
+    <h2>Report Not Found</h2>
+    <p>The report you're looking for doesn't exist or was deleted.</p>
+    <a href="/manage.html" style="display:inline-flex;padding:12px 24px;background:var(--accent);color:var(--navy);border-radius:10px;font-weight:700;text-decoration:none;">← Back to Manage Reports</a>
+  </div>
+
+</div>
+
+<script>
+const BASE = "http://127.0.0.1:5000";
+let currentReport = null;
+let recipients = [];
+
+// ── Get report id from URL ─────────────────────────────────────
+const params = new URLSearchParams(window.location.search);
+const reportId = parseInt(params.get('id'));
+
+// ── Load report + user info ────────────────────────────────────
+async function init() {
+  if (!reportId) { showNotFound(); return; }
+
+  try {
+    // Load all reports
+    const res = await fetch(BASE + '/get-reports', { credentials: 'include' });
+    if (!res.ok) { showNotFound(); return; }
+    const reports = await res.json();
+    const report = reports.find(r => r.id === reportId);
+    if (!report) { showNotFound(); return; }
+    currentReport = report;
+
+    // Load user info for sender display
+    try {
+      const uRes = await fetch(BASE + '/auth/me', { credentials: 'include' });
+      const uData = await uRes.json();
+      if (uData.username) {
+        document.getElementById('fromName').value = uData.username;
+      }
+    } catch {}
+
+    // Set sender email from config (shown as reference)
+    document.getElementById('senderEmailDisplay').textContent = 'Configured Gmail (set in app.py)';
+
+    // Pre-fill subject
+    const dateStr = report.date
+      ? new Date(report.date).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' })
+      : '';
+    document.getElementById('subject').value = `Service Report — ${report.title || 'Report'} — ${dateStr}`;
+
+    // Render report preview
+    renderReportPreview(report);
+
+    // Show layout
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('mainLayout').style.display = 'grid';
+
+  } catch (e) {
+    showNotFound();
+  }
+}
+
+function showNotFound() {
+  document.getElementById('loadingState').style.display = 'none';
+  document.getElementById('notFound').style.display = 'block';
+}
+
+// ── Parse report content ──────────────────────────────────────
+function parseContent(content) {
+  const lines = (content || '').split('\n');
+  const fields = {};
+  const faults = [];
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('─') || trimmed.startsWith('Report ')) continue;
+    const colonIdx = trimmed.indexOf(':');
+    if (colonIdx > 0) {
+      const key = trimmed.slice(0, colonIdx).trim().toLowerCase().replace(/\s+/g, '_');
+      const val = trimmed.slice(colonIdx + 1).trim();
+      if (key === 'faults') faults.push(...val.split(',').map(f=>f.trim()).filter(Boolean));
+      else fields[key] = val;
+    }
+  }
+  fields.faults = faults;
+  return fields;
+}
+
+function field(label, value) {
+  const val = value || '—';
+  const empty = !value ? ' empty' : '';
+  return `<div class="rp-field">
+    <div class="rp-field-label">${label}</div>
+    <div class="rp-field-value${empty}">${val}</div>
+  </div>`;
+}
+
+function section(label, innerHtml) {
+  return `<div class="rp-section">
+    <div class="rp-section-label">${label}</div>
+    ${innerHtml}
+  </div>`;
+}
+
+// ── Render the white-paper report ─────────────────────────────
+function renderReportPreview(report) {
+  const f = parseContent(report.content);
+  const dateStr = report.date
+    ? new Date(report.date).toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' })
+    : new Date().toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+
+  const faultChips = f.faults.length
+    ? f.faults.map(ft => `<span class="rp-chip">${ft}</span>`).join('')
+    : '<span style="color:#94a3b8;font-style:italic;font-size:11px;">None recorded</span>';
+
+  document.getElementById('reportPaper').innerHTML = `
+    <div class="rp-head">
+      <div>
+        <div class="rp-brand">ServiceReport <span>Pro</span></div>
+        <div class="rp-brand-sub">Professional Service Report Management System</div>
+      </div>
+      <div class="rp-badge">Service Report</div>
+    </div>
+
+    <div class="rp-body">
+      <div class="rp-title-strip">
+        <div class="rp-report-name">${escHtml(report.title || 'Service Report')}</div>
+        <div class="rp-date">📅 ${dateStr}</div>
+      </div>
+
+      ${section('Customer Details', `
+        <div class="rp-row">
+          ${field('Customer Name', f.customer)}
+          ${field('City', f.city)}
+        </div>
+        <div class="rp-row">
+          ${field('Address', f.address || f.address_)}
+        </div>
+        <div class="rp-row">
+          ${field('UPS Model', f.ups_model || f.model)}
+          ${field('KVA Rating', f.kva)}
+        </div>
+      `)}
+
+      ${section('Type of Fault', `<div class="rp-fault-chips">${faultChips}</div>`)}
+
+      ${section('Observation', `
+        <div class="rp-field" style="background:#fffbeb;border-color:#fde68a;">
+          <div class="rp-field-value" style="line-height:1.7;white-space:pre-wrap;">${f.observation || '—'}</div>
+        </div>
+      `)}
+
+      ${section('Action Taken', `
+        <div class="rp-field" style="background:#f0fdf4;border-color:#bbf7d0;">
+          <div class="rp-field-value" style="line-height:1.7;white-space:pre-wrap;">${f.action_taken || f.action || '—'}</div>
+        </div>
+      `)}
+
+      ${section('Maintenance Readings', `
+        <div class="rp-row">
+          ${field('Input Voltage', f.input_voltage)}
+          ${field('Output Voltage', f.output_voltage)}
+          ${field('Fan Status', f.fan_status)}
+        </div>
+      `)}
+
+      ${section('Signatures', `
+        <div class="rp-row">
+          ${field('Engineer', f.engineer)}
+          ${field('Customer Sign', f.customer)}
+          ${field('Date', f.date || dateStr)}
+        </div>
+      `)}
+    </div>
+
+    <div class="rp-footer-strip">
+      <div class="rp-footer-text">Generated by <span>ServiceReport Pro</span> · Pune, India</div>
+      <div class="rp-footer-text">${new Date().toLocaleString('en-IN')}</div>
+    </div>
+  `;
+}
+
+// ── Recipient tag system ───────────────────────────────────────
+const toInput = document.getElementById('toInput');
+const toWrap  = document.getElementById('toWrap');
+
+function addRecipient(email) {
+  email = email.trim().toLowerCase();
+  if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return;
+  if (recipients.includes(email)) return;
+  recipients.push(email);
+  renderTags();
+  toInput.value = '';
+}
+
+function removeRecipient(email) {
+  recipients = recipients.filter(e => e !== email);
+  renderTags();
+}
+
+function renderTags() {
+  // Remove existing tags
+  toWrap.querySelectorAll('.email-tag').forEach(t => t.remove());
+  // Insert tags before input
+  recipients.forEach(email => {
+    const tag = document.createElement('div');
+    tag.className = 'email-tag';
+    tag.innerHTML = `${email} <button type="button" onclick="removeRecipient('${email}')">×</button>`;
+    toWrap.insertBefore(tag, toInput);
+  });
+}
+
+toInput.addEventListener('keydown', e => {
+  if (e.key === 'Enter' || e.key === ',') {
+    e.preventDefault();
+    addRecipient(toInput.value);
+  }
+  if (e.key === 'Backspace' && !toInput.value && recipients.length) {
+    removeRecipient(recipients[recipients.length - 1]);
+  }
+});
+
+toInput.addEventListener('blur', () => {
+  if (toInput.value.trim()) addRecipient(toInput.value);
+});
+
+toInput.addEventListener('paste', e => {
+  setTimeout(() => {
+    const val = toInput.value;
+    if (val.includes(',')) {
+      val.split(',').forEach(email => addRecipient(email));
+    }
+  }, 50);
+});
+
+// ── SEND EMAIL ─────────────────────────────────────────────────
+async function sendEmail() {
+  clearAlert();
+
+  // Flush any typed email in input
+  if (toInput.value.trim()) addRecipient(toInput.value);
+
+  if (recipients.length === 0) {
+    showAlert('Please add at least one recipient email address.', 'error');
+    toInput.focus(); return;
+  }
+
+  const fromName = document.getElementById('fromName').value.trim();
+  const ccEmail  = document.getElementById('ccEmail').value.trim();
+  const subject  = document.getElementById('subject').value.trim();
+  const message  = document.getElementById('message').value.trim();
+
+  if (!subject) {
+    showAlert('Please enter an email subject.', 'error');
+    document.getElementById('subject').focus(); return;
+  }
+
+  setLoading(true);
+
+  // Send to each recipient
+  let successCount = 0;
+  let lastError = '';
+
+  for (const toEmail of recipients) {
+    try {
+      const res = await fetch(BASE + '/send-report-email', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          from_name:  fromName,
+          to_email:   toEmail,
+          cc_email:   ccEmail,
+          subject:    subject,
+          message:    message,
+          report_id:  reportId
+        }),
+        credentials: 'include'
+      });
+      const data = await res.json();
+      if (res.ok) {
+        successCount++;
+      } else {
+        lastError = data.error || 'Failed to send.';
+      }
+    } catch (e) {
+      lastError = 'Cannot connect to server. Is Flask running?';
+    }
+  }
+
+  setLoading(false);
+
+  if (successCount === recipients.length) {
+    showAlert(`✓ Report sent successfully to ${recipients.length} recipient${recipients.length > 1 ? 's' : ''}!`, 'success');
+  } else if (successCount > 0) {
+    showAlert(`Sent to ${successCount} of ${recipients.length}. Error: ${lastError}`, 'error');
+  } else {
+    showAlert(`Failed to send: ${lastError}`, 'error');
+  }
+}
+
+// ── Helpers ────────────────────────────────────────────────────
+function showAlert(msg, type) {
+  const el = document.getElementById('alert');
+  el.textContent = msg;
+  el.className = 'alert ' + type;
+  el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+function clearAlert() { document.getElementById('alert').className = 'alert'; }
+
+function setLoading(v) {
+  const btn  = document.getElementById('sendBtn');
+  const txt  = document.getElementById('sendTxt');
+  const spin = document.getElementById('sendSpin');
+  btn.disabled  = v;
+  txt.textContent = v ? 'Sending...' : '📧 Send Report';
+  spin.style.display = v ? 'block' : 'none';
+}
+
+function escHtml(str) {
+  return (str || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Init on load
+init();
+</script>
+</body>
+</html>

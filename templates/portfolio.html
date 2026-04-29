@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Create Report — ServiceReport Pro</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --navy: #0f1c2e;
+      --navy-mid: #162236;
+      --navy-light: #1e3352;
+      --accent: #e8a04a;
+      --accent-light: #f2c47a;
+      --steel: #4a6080;
+      --mist: #8aa0b8;
+      --white: #ffffff;
+      --border: rgba(255,255,255,0.08);
+      --text-dim: rgba(255,255,255,0.55);
+      --success: #28c840;
+      --danger: #ff5f56;
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--navy);
+      color: var(--white);
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 48px; height: 68px;
+      background: rgba(15,28,46,0.95);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border);
+    }
+
+    .nav-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-family: 'DM Serif Display', serif;
+      font-size: 20px;
+      color: var(--white); text-decoration: none;
+    }
+
+    .nav-logo .dot { width: 8px; height: 8px; background: var(--accent); border-radius: 50%; }
+
+    .nav-links { display: flex; align-items: center; gap: 8px; }
+
+    .nav-links a {
+      color: var(--mist); text-decoration: none;
+      font-size: 14px; font-weight: 500;
+      padding: 8px 16px; border-radius: 8px; transition: all 0.2s;
+    }
+
+    .nav-links a:hover { color: var(--white); background: rgba(255,255,255,0.06); }
+    .nav-links a.active { color: var(--accent); }
+
+    /* MAIN LAYOUT */
+    .main { padding-top: 68px; display: flex; min-height: 100vh; }
+
+    .sidebar {
+      width: 280px; flex-shrink: 0;
+      background: var(--navy-mid);
+      border-right: 1px solid var(--border);
+      padding: 32px 20px;
+      position: sticky; top: 68px;
+      height: calc(100vh - 68px);
+      overflow-y: auto;
+    }
+
+    .sidebar-title {
+      font-size: 11px; font-weight: 700;
+      letter-spacing: 2px; text-transform: uppercase;
+      color: var(--mist);
+      padding: 0 12px;
+      margin-bottom: 12px;
+    }
+
+    .tab-list { display: flex; flex-direction: column; gap: 4px; }
+
+    .tab-item {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 14px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-size: 14px;
+      color: var(--mist);
+      transition: all 0.2s;
+      border: 1px solid transparent;
+    }
+
+    .tab-item:hover { background: rgba(255,255,255,0.05); color: var(--white); }
+
+    .tab-item.active {
+      background: rgba(232,160,74,0.1);
+      border-color: rgba(232,160,74,0.25);
+      color: var(--accent);
+    }
+
+    .tab-num {
+      width: 22px; height: 22px;
+      background: var(--navy);
+      border-radius: 6px;
+      font-size: 11px; font-weight: 700;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--mist);
+    }
+
+    .tab-item.active .tab-num { background: var(--accent); color: var(--navy); }
+
+    .tab-close {
+      width: 20px; height: 20px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 14px; color: var(--mist);
+      transition: all 0.2s;
+      opacity: 0;
+    }
+
+    .tab-item:hover .tab-close { opacity: 1; }
+    .tab-close:hover { background: rgba(255,95,86,0.15); color: var(--danger); }
+
+    .add-report-btn {
+      width: 100%; margin-top: 12px;
+      padding: 10px;
+      background: transparent;
+      border: 1px dashed rgba(255,255,255,0.15);
+      border-radius: 10px;
+      color: var(--mist);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 13px; cursor: pointer;
+      transition: all 0.2s;
+    }
+
+    .add-report-btn:hover { border-color: var(--accent); color: var(--accent); background: rgba(232,160,74,0.05); }
+
+    /* CONTENT AREA */
+    .content { flex: 1; padding: 40px 48px; max-width: 800px; }
+
+    .page-header { margin-bottom: 32px; }
+
+    .page-header h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 32px;
+    }
+
+    .page-header p { font-size: 14px; color: var(--mist); margin-top: 6px; }
+
+    /* REPORT PANEL */
+    .report-panel { display: none; }
+    .report-panel.active { display: block; }
+
+    /* FIELDSETS */
+    .form-section {
+      background: var(--navy-mid);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      margin-bottom: 20px;
+    }
+
+    .form-section-header {
+      display: flex; align-items: center; gap: 12px;
+      margin-bottom: 24px;
+      padding-bottom: 16px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .form-section-icon {
+      width: 34px; height: 34px;
+      background: rgba(232,160,74,0.1);
+      border: 1px solid rgba(232,160,74,0.2);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+    }
+
+    .form-section-title { font-size: 15px; font-weight: 600; }
+
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .form-grid.single { grid-template-columns: 1fr; }
+    .form-grid.triple { grid-template-columns: 1fr 1fr 1fr; }
+
+    .form-group { display: flex; flex-direction: column; gap: 7px; }
+    .form-group.full { grid-column: 1 / -1; }
+
+    .form-group label {
+      font-size: 11px; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: var(--mist);
+    }
+
+    .form-group input,
+    .form-group textarea,
+    .form-group select {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 14px;
+      color: var(--white);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .form-group input:focus,
+    .form-group textarea:focus,
+    .form-group select:focus { border-color: rgba(232,160,74,0.45); }
+
+    .form-group textarea { resize: vertical; min-height: 90px; }
+
+    .form-group select option { background: var(--navy-mid); }
+
+    /* CHECKBOXES */
+    .fault-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px;
+    }
+
+    .fault-check {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px;
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 13px;
+    }
+
+    .fault-check input { display: none; }
+
+    .fault-check .check-box {
+      width: 18px; height: 18px;
+      border: 1px solid var(--mist);
+      border-radius: 4px;
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      transition: all 0.2s;
+      font-size: 11px;
+    }
+
+    .fault-check input:checked ~ .check-box {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--navy);
+    }
+
+    .fault-check:has(input:checked) {
+      background: rgba(232,160,74,0.08);
+      border-color: rgba(232,160,74,0.3);
+      color: var(--accent);
+    }
+
+    /* ACTION BUTTONS */
+    .action-bar {
+      display: flex; gap: 12px;
+      margin-top: 12px;
+      padding: 24px 0;
+    }
+
+    .action-btn {
+      display: flex; align-items: center; gap: 8px;
+      padding: 12px 24px;
+      border-radius: 10px;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; border: none;
+      transition: all 0.2s;
+    }
+
+    .action-btn.primary { background: var(--accent); color: var(--navy); }
+    .action-btn.primary:hover { background: var(--accent-light); transform: translateY(-1px); }
+
+    .action-btn.secondary {
+      background: transparent;
+      border: 1px solid var(--border);
+      color: var(--mist);
+    }
+
+    .action-btn.secondary:hover { border-color: rgba(255,255,255,0.3); color: var(--white); }
+
+    /* STATUS TOAST */
+    .toast {
+      position: fixed; bottom: 28px; right: 28px;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-size: 14px; font-weight: 600;
+      z-index: 999;
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { background: #0d2d17; border: 1px solid rgba(40,200,64,0.3); color: var(--success); }
+    .toast.error { background: #2d0d0d; border: 1px solid rgba(255,95,86,0.3); color: var(--danger); }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 20px; }
+      .main { flex-direction: column; }
+      .sidebar { width: 100%; height: auto; position: static; }
+      .content { padding: 24px 20px; }
+      .form-grid { grid-template-columns: 1fr; }
+      .fault-grid { grid-template-columns: 1fr 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a href="/" class="nav-logo">
+    <div class="dot"></div>
+    ServiceReport <span style="color:var(--accent)">Pro</span>
+  </a>
+  <div class="nav-links">
+    <a href="/">Home</a>
+    <a href="portfolio.html" class="active">Create Report</a>
+    <a href="manage.html">Manage Reports</a>
+  </div>
+</nav>
+
+<div class="main">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-title">Reports</div>
+    <div class="tab-list" id="tabList"></div>
+    <button class="add-report-btn" onclick="addReport()">+ Add Report</button>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="content">
+    <div class="page-header">
+      <h1>Create <em style="font-style:italic; color:var(--accent)">Service Report</em></h1>
+      <p>Fill in all sections and save, email or export as PDF.</p>
+    </div>
+
+    <div id="reportPanels"></div>
+
+    <div class="action-bar">
+      <button class="action-btn primary" onclick="saveReport()">💾 Save Report</button>
+      <button class="action-btn secondary" onclick="sendEmail()">📧 Send Email</button>
+      <button class="action-btn secondary" onclick="downloadPDF()">📄 Download PDF</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+  let reportCount = 0;
+  let activeIndex = 0;
+
+  function createReportForm(index) {
+    return `
+    <div class="form-section">
+      <div class="form-section-header">
+        <div class="form-section-icon">👤</div>
+        <div class="form-section-title">Customer Details</div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Customer Name</label>
+          <input type="text" placeholder="e.g. Ramesh Enterprises" data-field="customerName">
+        </div>
+        <div class="form-group">
+          <label>City</label>
+          <input type="text" placeholder="e.g. Pune" data-field="city">
+        </div>
+        <div class="form-group full">
+          <label>Address</label>
+          <textarea placeholder="Full site address..." data-field="address" style="min-height:60px;"></textarea>
+        </div>
+        <div class="form-group">
+          <label>UPS Model</label>
+          <input type="text" placeholder="e.g. XS-2000" data-field="model">
+        </div>
+        <div class="form-group">
+          <label>KVA Rating</label>
+          <input type="text" placeholder="e.g. 10 KVA" data-field="kva">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-header">
+        <div class="form-section-icon">⚠️</div>
+        <div class="form-section-title">Type of Fault</div>
+      </div>
+      <div class="fault-grid">
+        <label class="fault-check"><input type="checkbox" data-field="fault"><div class="check-box">✓</div> Rectifier</label>
+        <label class="fault-check"><input type="checkbox" data-field="fault"><div class="check-box">✓</div> Inverter</label>
+        <label class="fault-check"><input type="checkbox" data-field="fault"><div class="check-box">✓</div> Battery</label>
+        <label class="fault-check"><input type="checkbox" data-field="fault"><div class="check-box">✓</div> Control Supply</label>
+        <label class="fault-check"><input type="checkbox" data-field="fault"><div class="check-box">✓</div> Earthing</label>
+        <label class="fault-check"><input type="checkbox" data-field="fault"><div class="check-box">✓</div> Others</label>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-header">
+        <div class="form-section-icon">🔍</div>
+        <div class="form-section-title">Observation & Action</div>
+      </div>
+      <div class="form-grid single">
+        <div class="form-group">
+          <label>Observation</label>
+          <textarea placeholder="Describe what was observed at the site..." data-field="observation"></textarea>
+        </div>
+        <div class="form-group">
+          <label>Action Taken</label>
+          <textarea placeholder="Describe the steps taken to resolve the issue..." data-field="actionTaken"></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-header">
+        <div class="form-section-icon">🔧</div>
+        <div class="form-section-title">Maintenance Readings</div>
+      </div>
+      <div class="form-grid triple">
+        <div class="form-group">
+          <label>Input Voltage</label>
+          <input type="text" placeholder="e.g. 230V" data-field="inputVoltage">
+        </div>
+        <div class="form-group">
+          <label>Output Voltage</label>
+          <input type="text" placeholder="e.g. 220V" data-field="outputVoltage">
+        </div>
+        <div class="form-group">
+          <label>Fan Status</label>
+          <select data-field="fanStatus">
+            <option value="">Select status</option>
+            <option>Working</option>
+            <option>Not Working</option>
+            <option>Partial</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-section">
+      <div class="form-section-header">
+        <div class="form-section-icon">✍️</div>
+        <div class="form-section-title">Signature</div>
+      </div>
+      <div class="form-grid">
+        <div class="form-group">
+          <label>Engineer Name</label>
+          <input type="text" placeholder="Service engineer's name" data-field="engineerName">
+        </div>
+        <div class="form-group">
+          <label>Customer Name</label>
+          <input type="text" placeholder="Customer's name" data-field="sigCustomer">
+        </div>
+        <div class="form-group full">
+          <label>Date</label>
+          <input type="date" data-field="date" style="max-width:240px;">
+        </div>
+      </div>
+    </div>
+    `;
+  }
+
+  function addReport() {
+    reportCount++;
+    const idx = reportCount - 1;
+
+    // Tab
+    const tab = document.createElement('div');
+    tab.className = 'tab-item' + (idx === 0 ? ' active' : '');
+    tab.dataset.index = idx;
+    tab.innerHTML = `
+      <div style="display:flex;align-items:center;gap:8px;">
+        <div class="tab-num">${reportCount}</div>
+        <span>Report ${reportCount}</span>
+      </div>
+      <div class="tab-close" onclick="event.stopPropagation();removeReport(${idx})">×</div>
+    `;
+    tab.addEventListener('click', () => switchTab(idx));
+    document.getElementById('tabList').appendChild(tab);
+
+    // Panel
+    const panel = document.createElement('div');
+    panel.className = 'report-panel' + (idx === 0 ? ' active' : '');
+    panel.dataset.index = idx;
+    panel.innerHTML = createReportForm(idx);
+    // Set today's date
+    panel.querySelector('[data-field="date"]').valueAsDate = new Date();
+    document.getElementById('reportPanels').appendChild(panel);
+
+    switchTab(idx);
+  }
+
+  function switchTab(idx) {
+    activeIndex = idx;
+    document.querySelectorAll('.tab-item').forEach(t => t.classList.toggle('active', +t.dataset.index === idx));
+    document.querySelectorAll('.report-panel').forEach(p => p.classList.toggle('active', +p.dataset.index === idx));
+  }
+
+  function removeReport(idx) {
+    if (document.querySelectorAll('.tab-item').length <= 1) return;
+    document.querySelectorAll('.tab-item')[idx]?.remove();
+    document.querySelectorAll('.report-panel')[idx]?.remove();
+    const remaining = document.querySelectorAll('.tab-item');
+    const newIdx = Math.min(idx, remaining.length - 1);
+    if (remaining.length) switchTab(+remaining[newIdx].dataset.index);
+  }
+
+  function collectData() {
+    let result = [];
+    document.querySelectorAll('.report-panel').forEach((panel, i) => {
+      let report = { reportNum: i + 1 };
+      panel.querySelectorAll('[data-field]').forEach(el => {
+        const field = el.dataset.field;
+        if (el.type === 'checkbox') {
+          if (el.checked) {
+            if (!report.faults) report.faults = [];
+            report.faults.push(el.closest('.fault-check').textContent.trim());
+          }
+        } else {
+          report[field] = el.value;
+        }
+      });
+      result.push(report);
+    });
+    return result;
+  }
+
+  function collectText() {
+    return collectData().map((r, i) => {
+      let lines = [`Report ${r.reportNum}`, '─'.repeat(40)];
+      if (r.customerName) lines.push(`Customer: ${r.customerName}`);
+      if (r.city) lines.push(`City: ${r.city}`);
+      if (r.address) lines.push(`Address: ${r.address}`);
+      if (r.model) lines.push(`Model: ${r.model}`);
+      if (r.kva) lines.push(`KVA: ${r.kva}`);
+      if (r.faults?.length) lines.push(`Faults: ${r.faults.join(', ')}`);
+      if (r.observation) lines.push(`Observation: ${r.observation}`);
+      if (r.actionTaken) lines.push(`Action Taken: ${r.actionTaken}`);
+      if (r.inputVoltage) lines.push(`Input Voltage: ${r.inputVoltage}`);
+      if (r.outputVoltage) lines.push(`Output Voltage: ${r.outputVoltage}`);
+      if (r.fanStatus) lines.push(`Fan Status: ${r.fanStatus}`);
+      if (r.engineerName) lines.push(`Engineer: ${r.engineerName}`);
+      if (r.date) lines.push(`Date: ${r.date}`);
+      return lines.join('\n');
+    }).join('\n\n');
+  }
+
+  function showToast(msg, type = 'success') {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = `toast ${type} show`;
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  async function saveReport() {
+    const content = collectText();
+    if (!content.trim()) { showToast('Form is empty!', 'error'); return; }
+
+    try {
+      const res = await fetch('/save-report', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title: 'Report ' + new Date().toLocaleString('en-IN'), reportData: content })
+      });
+      const msg = await res.text();
+      showToast('Report saved successfully ✓');
+    } catch (err) {
+      // Demo mode - save to localStorage
+      const reports = JSON.parse(localStorage.getItem('reports') || '[]');
+      reports.unshift({ id: Date.now(), title: 'Report ' + new Date().toLocaleString('en-IN'), content, date: new Date().toISOString() });
+      localStorage.setItem('reports', JSON.stringify(reports));
+      showToast('Report saved locally ✓');
+    }
+  }
+
+  async function sendEmail() {
+    const content = collectText();
+    if (!content.trim()) {
+      showToast('Form is empty! Fill the report first.', 'error');
+      return;
+    }
+
+    const dateStr = new Date().toLocaleDateString('en-IN', { day:'numeric', month:'long', year:'numeric' });
+
+    const body = [
+      '════════════════════════════════════════',
+      '        SERVICE REPORT',
+      '        ServiceReport Pro',
+      '════════════════════════════════════════',
+      '',
+      content,
+      '',
+      '════════════════════════════════════════',
+      'Generated by ServiceReport Pro',
+      'Pune, India',
+      '════════════════════════════════════════',
+    ].join('\n');
+
+    const subject = 'Service Report — ' + dateStr;
+
+    // Open device native mail app with full report pre-filled
+    const mailtoLink = 'mailto:?subject=' + encodeURIComponent(subject) + '&body=' + encodeURIComponent(body);
+    window.location.href = mailtoLink;
+
+    showToast('Opening your mail app...');
+  }
+
+  function downloadPDF() {
+    const panels = document.getElementById('reportPanels');
+    html2pdf().set({
+      margin: 10,
+      filename: 'service-report-' + Date.now() + '.pdf',
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    }).from(panels).save();
+    showToast('PDF downloading...');
+  }
+
+  // Init
+  addReport();
+</script>
+</body>
+</html>
